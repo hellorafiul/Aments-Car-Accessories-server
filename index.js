@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const ObjectId = require('mongodb').ObjectId;
 require('dotenv').config()
 const { MongoClient } = require('mongodb');
 
@@ -21,6 +22,7 @@ async function run() {
     const orderCollection = database.collection('orders');
     const reviewCollection = database.collection('reviews');
     const productCollection = database.collection('products');
+    const usersCollection = database.collection('users');
 
     // Post reviews/Testimonial
     app.post('/reviews', async (req, res) => {
@@ -72,6 +74,58 @@ async function run() {
     app.get('/orders', async (req, res) => {
       const result = await orderCollection.find({}).toArray()
       res.send(result)
+    })
+
+
+    //Cancel/delete my order 
+
+    app.delete('/cancelOrder/:id', async (req, res) => {
+      const result = await orderCollection.deleteOne({ _id: ObjectId(req.params.id) });
+      res.json(result)
+    })
+
+    //Delete Products 
+    app.delete('/deleteProduct/:id', async (req, res) => {
+      const result = await productCollection.deleteOne({ _id: ObjectId(req.params.id) });
+      res.json(result)
+    })
+
+    // Add user
+    app.post("/users", async (req, res) => {
+      const result = await usersCollection.insertOne(req.body);
+      res.send(result)
+    })
+
+    // Update user
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email }
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(filter, updateDoc, options);
+      res.send(result)
+    })
+
+    // Add admin role
+    app.put("/users/admin", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email }
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    // Get admin data
+
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === 'admin') {
+        isAdmin = true;
+      }
+      res.send({ admin: isAdmin })
     })
 
   } finally {
