@@ -106,6 +106,16 @@ async function run() {
       res.send(result)
     })
 
+    // Update orders status ********* 
+    // app.put('/orders:id', async (req, res) => {
+    //   const filter = { _id: ObjectId(req.params.id) }
+    //   const options = { upsert: true };
+    //   const updateDoc = { $set: { status: "Shipped" } };
+    //   const result = await usersCollection.updateOne(filter, updateDoc, options);
+    //   res.send(result)
+    // })
+
+
     // Add admin role
     app.put("/users/admin", async (req, res) => {
       const user = req.body;
